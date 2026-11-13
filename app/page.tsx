@@ -8,7 +8,6 @@ import {
   Clipboard,
   Copy,
   Headphones,
-  Link2,
   LoaderCircle,
   MessageCircle,
   LockKeyhole,
@@ -20,6 +19,7 @@ import {
   Plus,
   ShieldCheck,
   Signal,
+  Share2,
   Smile,
   Sparkles,
   Sun,
@@ -217,13 +217,31 @@ export default function Home() {
   const copyInvite = useCallback(async () => {
     if (!inviteUrl) return;
     try {
-      await navigator.clipboard.writeText(inviteUrl);
+      await navigator.clipboard.writeText(`Join my private VYBE room:\n${inviteUrl}\n\nPrivate key: ${key}`);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1800);
     } catch {
       setError("Clipboard access was blocked. Copy the invite link from your browser address bar.");
     }
-  }, [inviteUrl]);
+  }, [inviteUrl, key]);
+
+  const shareInvite = useCallback(async () => {
+    if (!inviteUrl) return;
+    if (!navigator.share) {
+      await copyInvite();
+      return;
+    }
+    try {
+      await navigator.share({
+        title: "Join my private VYBE room",
+        text: `Use this private key to join: ${key}`,
+        url: inviteUrl,
+      });
+    } catch (shareError) {
+      if (shareError instanceof DOMException && shareError.name === "AbortError") return;
+      setError("The invite could not be shared. Try copying it instead.");
+    }
+  }, [copyInvite, inviteUrl, key]);
 
   const joinRoom = async () => {
     if (!key) return;
@@ -570,7 +588,7 @@ export default function Home() {
               </div>
               <div className="invite-preview-card">
                 <div><span className="invite-label">YOUR PRIVATE INVITE</span><span className="invite-key-preview">{key.slice(0, 9)}••••••••••••••••</span></div>
-                <button className="copy-key-button" onClick={copyInvite}>{copied ? <Check size={16} /> : <Copy size={16} />}{copied ? "Copied" : "Copy link"}</button>
+                <button className="copy-key-button" onClick={copyInvite}>{copied ? <Check size={16} /> : <Copy size={16} />}{copied ? "Copied" : "Copy invite"}</button>
               </div>
               {error && <p className="inline-error">{error}</p>}
               <button className="enter-button" onClick={joinRoom} disabled={busy || stage === "connecting"}>
@@ -586,7 +604,7 @@ export default function Home() {
         <section className="call-view">
           <div className="call-header">
             <div><span className="call-state-dot" /><span>ROOM ACTIVE</span><span className="call-header-separator">/</span><span className="call-room-name">PRIVATE SESSION</span></div>
-            <button className="share-invite-button" onClick={copyInvite}>{copied ? <Check size={15} /> : <Link2 size={15} />}{copied ? "Copied" : "Invite"}</button>
+            <button className="share-invite-button" onClick={shareInvite}>{copied ? <Check size={15} /> : <Share2 size={15} />}{copied ? "Copied" : "Share invite"}</button>
           </div>
           {chatOpen && (
             <aside className="chat-panel" style={{ transform: `translate3d(${chatPosition.x}px, ${chatPosition.y}px, 0)` }}>
@@ -641,7 +659,7 @@ export default function Home() {
                   <div className="waiting-pulse"><span /><span /><span /></div>
                   <strong>You're here first.</strong>
                   <p>Send the private invite to bring someone in.</p>
-                  <button onClick={copyInvite}>{copied ? <Check size={14} /> : <Copy size={14} />}{copied ? "Copied" : "Copy invite link"}</button>
+                  <button onClick={copyInvite}>{copied ? <Check size={14} /> : <Copy size={14} />}{copied ? "Copied" : "Copy invite"}</button>
                 </div>
               )}
             </div>
