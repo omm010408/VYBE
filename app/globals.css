@@ -209,6 +209,8 @@ h1, h2 { font-family: ui-sans-serif, system-ui, sans-serif; letter-spacing: -.06
 .leave-control small { color: rgba(255,255,255,.82); }
 .call-foot-right { justify-content: flex-end; color: #78817a; }
 .call-foot-right svg { color: #9ec4a5; }
+.audio-enable-button { border: 0; background: transparent; cursor: pointer; }
+.audio-enable-button:hover { color: #c2d8c6; }
 .theme-toggle { width: 29px; height: 29px; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.1); border-radius: 7px; background: rgba(255,255,255,.035); color: #c9d6cb; cursor: pointer; }
 .theme-toggle:hover { background: rgba(255,255,255,.09); }
 
@@ -359,6 +361,17 @@ h1, h2 { font-family: ui-sans-serif, system-ui, sans-serif; letter-spacing: -.06
   .call-control svg, .leave-control svg { width: 17px; height: 17px; }
   .preview-control-label { font-size: 9px; }
   .chat-panel { width: calc(100vw - 20px); right: -2px; }
+}
+
+@media (max-width: 760px) and (orientation: landscape) {
+  .topbar { height: 48px; }
+  .call-app-shell .call-view { height: calc(100dvh - 48px); padding-top: 8px; }
+  .call-stage { min-height: 0; padding-block: 6px; }
+  .call-stage.has-screen { display: grid; grid-template-columns: minmax(0, 1fr) 128px; gap: 8px; height: calc(100dvh - 126px); overflow: hidden; }
+  .call-stage.has-screen .screen-stage { grid-column: 1; height: 100%; min-height: 0; }
+  .call-stage.has-screen .participant-grid { grid-column: 2; grid-row: 1; display: grid; grid-template-columns: 1fr; grid-auto-rows: minmax(70px, 1fr); height: 100%; max-height: none; overflow: hidden; }
+  .call-stage.has-screen .participant-card, .call-stage.has-screen .waiting-card { min-height: 0; width: 100%; aspect-ratio: auto; }
+  .call-footer { min-height: 58px; padding-block: 6px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

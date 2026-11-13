@@ -92,6 +92,10 @@ function AudioSurface({ track }: { track: any }) {
     if (!track || !audioRef.current) return;
     const element = track.attach(audioRef.current);
     element.autoplay = true;
+    element.muted = false;
+    void element.play().catch(() => {
+      // Mobile browsers may require the user to unlock audio from the call controls.
+    });
     return () => {
       try {
         track.detach(element);
@@ -306,6 +310,11 @@ export default function Home() {
 
       await nextRoom.prepareConnection(payload.serverUrl, payload.token);
       await nextRoom.connect(payload.serverUrl, payload.token);
+      try {
+        await nextRoom.startAudio();
+      } catch {
+        setMediaNotice("Tap the call controls once to enable incoming audio on this device.");
+      }
       nextRoom.on(RoomEvent.DataReceived, (payload, participant, _kind, topic) => {
         if (topic !== "chat") return;
         try {
@@ -367,6 +376,7 @@ export default function Home() {
     setCameraOn(next);
     if (room) {
       try {
+        await room.startAudio();
         await room.localParticipant.setCameraEnabled(next);
         const publication = room.localParticipant.getTrackPublication(Track.Source.Camera);
         setLocalCameraTrack(publication?.track || null);
@@ -381,6 +391,7 @@ export default function Home() {
     setMicOn(next);
     if (room) {
       try {
+        await room.startAudio();
         await room.localParticipant.setMicrophoneEnabled(next);
         if (screenAudioTrackRef.current) screenAudioTrackRef.current.enabled = true;
       } catch {
@@ -506,6 +517,16 @@ export default function Home() {
     }, 3200);
   };
 
+  const enableAudio = async () => {
+    try {
+      await room?.startAudio();
+      await Promise.all(Array.from(document.querySelectorAll("audio"), (audio) => audio.play().catch(() => undefined)));
+      setMediaNotice("");
+    } catch {
+      setMediaNotice("Tap Enable audio again, or check your device volume and browser permissions.");
+    }
+  };
+
   const sendChatMessage = async (event: FormEvent) => {
     event.preventDefault();
     const text = chatDraft.trim().slice(0, 500);
@@ -521,6 +542,7 @@ export default function Home() {
         text,
         own: true,
       };
+
       setChatMessages((current) => [...current.slice(-99), localMessage]);
       notifyChat(localMessage);
       setChatDraft("");
@@ -746,7 +768,7 @@ export default function Home() {
               <button className={`call-control ${chatOpen ? "control-on" : ""}`} onClick={() => setChatOpen((open) => !open)} aria-label={chatOpen ? "Close room chat" : "Open room chat"}><MessageCircle size={19} /><small>Chat</small></button>
               <button className="leave-control" onClick={leaveRoom} aria-label="Leave call"><PhoneOff size={19} /><small>Leave</small></button>
             </div>
-            <div className="call-foot-right"><Volume2 size={14} /> LIVE AUDIO</div>
+            <button className="call-foot-right audio-enable-button" onClick={enableAudio}><Volume2 size={14} /> ENABLE AUDIO</button>
           </div>
         </section>
       )}
