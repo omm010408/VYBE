@@ -9,7 +9,9 @@ import {
   Copy,
   Headphones,
   LoaderCircle,
+  Maximize2,
   MessageCircle,
+  Minimize2,
   LockKeyhole,
   Mic,
   MicOff,
@@ -116,6 +118,7 @@ export default function Home() {
   const [previewStream, setPreviewStream] = useState<MediaStream | null>(null);
   const [screenStream, setScreenStream] = useState<MediaStream | null>(null);
   const [screenAudioIncluded, setScreenAudioIncluded] = useState<boolean | null>(null);
+  const [screenFocus, setScreenFocus] = useState(false);
   const [remoteMedia, setRemoteMedia] = useState<RemoteMedia[]>([]);
   const [localCameraTrack, setLocalCameraTrack] = useState<any>(null);
   const [localScreenTrack, setLocalScreenTrack] = useState<any>(null);
@@ -134,6 +137,7 @@ export default function Home() {
   const [chatPosition, setChatPosition] = useState({ x: 0, y: 0 });
   const chatDrag = useRef<{ startX: number; startY: number; originX: number; originY: number } | null>(null);
   const previewVideoRef = useRef<HTMLVideoElement>(null);
+  const screenStageRef = useRef<HTMLDivElement>(null);
   const screenTracksRef = useRef<MediaStreamTrack[]>([]);
 
   useEffect(() => {
@@ -369,6 +373,8 @@ export default function Home() {
   };
 
   const stopScreenShare = useCallback(async () => {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    setScreenFocus(false);
     if (room) {
       for (const track of screenTracksRef.current) {
         try {
@@ -386,6 +392,20 @@ export default function Home() {
     setLocalScreenTrack(null);
     setScreenAudioIncluded(null);
   }, [room]);
+
+  const toggleScreenFocus = async () => {
+    if (!screenFocus) {
+      setScreenFocus(true);
+      try {
+        await screenStageRef.current?.requestFullscreen();
+      } catch {
+        // The layout focus mode remains available if browser fullscreen is blocked.
+      }
+      return;
+    }
+    if (document.fullscreenElement) await document.exitFullscreen();
+    setScreenFocus(false);
+  };
 
   const toggleScreenShare = async () => {
     if (screenStream) {
@@ -624,16 +644,17 @@ export default function Home() {
             </aside>
           )}
 
-          <div className={`call-stage ${remoteScreen || localScreenTrack ? "has-screen" : ""}`}>
+          <div className={`call-stage ${remoteScreen || localScreenTrack ? "has-screen" : ""} ${screenFocus ? "screen-focus" : ""}`}>
             {reactionBubbles.length > 0 && (
               <div className="reaction-bubbles" aria-live="polite">
                 {reactionBubbles.map((reaction) => <span className="reaction-bubble" key={reaction.id}>{reaction.emoji}</span>)}
               </div>
             )}
             {(remoteScreen || localScreenTrack) && (
-              <div className="screen-stage">
+              <div className="screen-stage" ref={screenStageRef}>
                 {localScreenTrack && screenStream ? <video className="video-feed" autoPlay playsInline muted ref={(element) => { if (element) element.srcObject = screenStream; }} /> : remoteScreen ? <VideoSurface track={remoteScreen.track} label="Shared screen" /> : null}
                 <span className="screen-tag"><MonitorUp size={13} /> SCREEN SHARE {screenAudioIncluded ? "· AUDIO ON" : ""}</span>
+                <button className="screen-focus-button" onClick={toggleScreenFocus} aria-label={screenFocus ? "Exit fullscreen shared screen" : "Fullscreen shared screen"}>{screenFocus ? <Minimize2 size={15} /> : <Maximize2 size={15} />}</button>
               </div>
             )}
             <div className="participant-grid">
