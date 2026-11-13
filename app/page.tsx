@@ -521,6 +521,7 @@ export default function Home() {
   const remoteCamera = remoteVideo.filter((item) => item.source !== Track.Source.ScreenShare);
   const connectedParticipants = room ? Array.from(room.remoteParticipants.values()) : [];
   const remoteWithoutVideo = connectedParticipants.filter((participant) => !remoteCamera.some((item) => item.identity === participant.identity));
+  const oneToOneCall = !remoteScreen && !localScreenTrack && connectedParticipants.length === 1;
 
   return (
     <main className={`app-shell ${stage === "call" ? "call-app-shell" : ""}`}>
@@ -660,7 +661,7 @@ export default function Home() {
                 <button className="screen-focus-button" onClick={toggleScreenFocus} aria-label={screenFocus ? "Exit fullscreen shared screen" : "Fullscreen shared screen"}>{screenFocus ? <Minimize2 size={15} /> : <Maximize2 size={15} />}</button>
               </div>
             )}
-            <div className="participant-grid">
+            <div className={`participant-grid ${oneToOneCall ? "one-to-one" : ""}`}>
               <div className="participant-card local-participant">
                 {cameraOn && localCameraTrack ? <VideoSurface track={localCameraTrack} muted label="Your camera" /> : <div className="participant-off"><Avatar name={displayName} large /><span>Camera off</span></div>}
                 <span className="participant-name"><span className="you-label">YOU</span>{displayName}</span>

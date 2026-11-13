@@ -143,6 +143,9 @@ h1, h2 { font-family: ui-sans-serif, system-ui, sans-serif; letter-spacing: -.06
 .chat-form button:disabled { opacity: .35; cursor: not-allowed; }
 .call-stage { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 13px; padding: 20px 0; min-height: 420px; }
 .participant-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 13px; align-content: center; }
+.participant-grid.one-to-one { position: relative; display: block; height: min(70vh, 680px); min-height: 420px; }
+.participant-grid.one-to-one .participant-card:not(.local-participant) { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; aspect-ratio: auto; }
+.participant-grid.one-to-one .local-participant { position: absolute; z-index: 4; right: 22px; bottom: 22px; width: min(25%, 220px); min-height: 120px; aspect-ratio: 16 / 9; border-color: rgba(255,255,255,.25); box-shadow: 0 12px 30px rgba(0,0,0,.35); }
 .participant-card, .waiting-card, .screen-stage { position: relative; min-height: 260px; overflow: hidden; border-radius: 12px; border: 1px solid rgba(255,255,255,.1); background: radial-gradient(circle at 50% 35%, #202725, #101316 68%); }
 .participant-card { display: grid; place-items: center; aspect-ratio: 16/9; }
 .participant-card .video-feed { position: absolute; inset: 0; }
@@ -322,6 +325,8 @@ h1, h2 { font-family: ui-sans-serif, system-ui, sans-serif; letter-spacing: -.06
   .share-invite-button { padding: 8px 9px; font-size: 9px; }
   .call-stage { min-height: 260px; gap: 8px; padding: 10px 0; }
   .participant-grid { grid-template-columns: 1fr; }
+  .participant-grid.one-to-one { height: min(68vh, 520px); min-height: 280px; }
+  .participant-grid.one-to-one .local-participant { right: 12px; bottom: 12px; width: 34%; min-height: 80px; }
   .participant-card, .waiting-card { min-height: 190px; }
   .call-footer { grid-template-columns: 1fr; gap: 8px; padding: 9px; }
   .connection-label { justify-content: center; order: 0; }
