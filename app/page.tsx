@@ -134,8 +134,16 @@ export default function Home() {
   const [chatOpen, setChatOpen] = useState(false);
   const [chatDraft, setChatDraft] = useState("");
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatToast, setChatToast] = useState<ChatMessage | null>(null);
   const [chatPosition, setChatPosition] = useState({ x: 0, y: 0 });
   const chatDrag = useRef<{ startX: number; startY: number; originX: number; originY: number } | null>(null);
+
+  const notifyChat = useCallback((message: ChatMessage) => {
+    setChatToast(message);
+    window.setTimeout(() => {
+      setChatToast((current) => current?.id === message.id ? null : current);
+    }, 5000);
+  }, []);
   const previewVideoRef = useRef<HTMLVideoElement>(null);
   const screenStageRef = useRef<HTMLDivElement>(null);
   const screenTracksRef = useRef<MediaStreamTrack[]>([]);
@@ -309,6 +317,12 @@ export default function Home() {
             text,
             own: false,
           }]);
+          notifyChat({
+            id: Date.now() + Math.floor(Math.random() * 1000),
+            sender: participant?.name || "Guest",
+            text,
+            own: false,
+          });
         } catch {
           // Ignore data published by another feature or an incompatible client.
         }
@@ -392,7 +406,7 @@ export default function Home() {
     setScreenStream(null);
     setLocalScreenTrack(null);
     setScreenAudioIncluded(null);
-  }, [room]);
+  }, [notifyChat, room]);
 
   const toggleScreenFocus = async () => {
     if (!screenFocus) {
@@ -458,6 +472,7 @@ export default function Home() {
     setChatMessages([]);
     setChatDraft("");
     setChatOpen(false);
+    setChatToast(null);
     setChatPosition({ x: 0, y: 0 });
     setStage("home");
     setKey("");
@@ -483,12 +498,14 @@ export default function Home() {
         reliable: true,
         topic: "chat",
       });
-      setChatMessages((current) => [...current.slice(-99), {
+      const localMessage = {
         id: Date.now() + Math.floor(Math.random() * 1000),
         sender: displayName || "You",
         text,
         own: true,
-      }]);
+      };
+      setChatMessages((current) => [...current.slice(-99), localMessage]);
+      notifyChat(localMessage);
       setChatDraft("");
     } catch {
       setError("Message could not be sent. Check your connection and try again.");
@@ -659,6 +676,7 @@ export default function Home() {
                 {localScreenTrack && screenStream ? <video className="video-feed" autoPlay playsInline muted ref={(element) => { if (element) element.srcObject = screenStream; }} /> : remoteScreen ? <VideoSurface track={remoteScreen.track} label="Shared screen" /> : null}
                 <span className="screen-tag"><MonitorUp size={13} /> SCREEN SHARE {screenAudioIncluded ? "· AUDIO ON" : ""}</span>
                 <button className="screen-focus-button" onClick={toggleScreenFocus} aria-label={screenFocus ? "Exit fullscreen shared screen" : "Fullscreen shared screen"}>{screenFocus ? <Minimize2 size={15} /> : <Maximize2 size={15} />}</button>
+                {chatToast && <div className="chat-toast" role="status"><MessageCircle size={15} /><span><strong>{chatToast.sender}</strong>{chatToast.text}</span><button onClick={() => setChatToast(null)} aria-label="Dismiss message"><X size={13} /></button></div>}
               </div>
             )}
             <div className={`participant-grid ${oneToOneCall ? "one-to-one" : ""}`}>
