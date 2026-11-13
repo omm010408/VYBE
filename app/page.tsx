@@ -29,7 +29,7 @@ import {
   Volume2,
   X,
 } from "lucide-react";
-import { Room, RoomEvent, Track, VideoQuality } from "livekit-client";
+import { AudioPresets, Room, RoomEvent, Track, VideoQuality } from "livekit-client";
 import { type FormEvent, type PointerEvent, useCallback, useEffect, useRef, useState } from "react";
 
 type Stage = "home" | "prejoin" | "connecting" | "call";
@@ -146,6 +146,7 @@ export default function Home() {
   }, []);
   const previewVideoRef = useRef<HTMLVideoElement>(null);
   const screenStageRef = useRef<HTMLDivElement>(null);
+  const screenAudioTrackRef = useRef<MediaStreamTrack | null>(null);
   const screenTracksRef = useRef<MediaStreamTrack[]>([]);
 
   useEffect(() => {
@@ -381,6 +382,7 @@ export default function Home() {
     if (room) {
       try {
         await room.localParticipant.setMicrophoneEnabled(next);
+        if (screenAudioTrackRef.current) screenAudioTrackRef.current.enabled = true;
       } catch {
         setError("Couldn't change microphone state. Check your browser permissions.");
       }
@@ -403,6 +405,7 @@ export default function Home() {
       screenTracksRef.current.forEach((track) => track.stop());
     }
     screenTracksRef.current = [];
+    screenAudioTrackRef.current = null;
     setScreenStream(null);
     setLocalScreenTrack(null);
     setScreenAudioIncluded(null);
@@ -431,7 +434,7 @@ export default function Home() {
     try {
       const displayStream = await navigator.mediaDevices.getDisplayMedia({
         video: { width: { ideal: 3840, max: 3840 }, height: { ideal: 2160, max: 2160 }, frameRate: { ideal: 30, max: 30 } },
-        audio: { autoGainControl: false, echoCancellation: false, noiseSuppression: false },
+        audio: true,
         systemAudio: "include",
       } as any);
       const videoTrack = displayStream.getVideoTracks()[0];
@@ -445,15 +448,21 @@ export default function Home() {
         degradationPreference: "maintain-resolution",
       });
       if (audioTrack) {
+        audioTrack.enabled = true;
+        screenAudioTrackRef.current = audioTrack;
         audioTrack.contentHint = "music";
-        await room.localParticipant.publishTrack(audioTrack, { source: Track.Source.ScreenShareAudio });
+        await room.localParticipant.publishTrack(audioTrack, {
+          source: Track.Source.ScreenShareAudio,
+          audioPreset: AudioPresets.musicHighQualityStereo,
+          dtx: false,
+        });
       }
       screenTracksRef.current = displayStream.getTracks();
       setScreenStream(displayStream);
       setScreenAudioIncluded(Boolean(audioTrack));
       setLocalScreenTrack(videoTrack);
       videoTrack.addEventListener("ended", () => { void stopScreenShare(); }, { once: true });
-      if (!audioTrack) setMediaNotice("No shared audio was provided. Choose a browser tab or window and enable its audio option in the share dialog.");
+      if (!audioTrack) setMediaNotice("No shared audio was provided. In Chrome or Edge, choose a browser tab and enable Share tab audio. Safari may not support system-audio capture.");
       else setMediaNotice("");
     } catch (shareError) {
       const message = shareError instanceof Error ? shareError.message : "Screen sharing was cancelled or unavailable.";
