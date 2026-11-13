@@ -29,7 +29,7 @@ import {
   Volume2,
   X,
 } from "lucide-react";
-import { Room, RoomEvent, Track } from "livekit-client";
+import { Room, RoomEvent, Track, VideoQuality } from "livekit-client";
 import { type FormEvent, type PointerEvent, useCallback, useEffect, useRef, useState } from "react";
 
 type Stage = "home" | "prejoin" | "connecting" | "call";
@@ -273,6 +273,7 @@ export default function Home() {
       const nextRoom = new Room({ adaptiveStream: true, dynacast: true });
       pendingRoom = nextRoom;
       nextRoom.on(RoomEvent.TrackSubscribed, (track, publication, participant) => {
+        if (publication.source === Track.Source.ScreenShare) publication.setVideoQuality(VideoQuality.HIGH);
         const item: RemoteMedia = {
           id: `${participant.identity}-${publication.trackSid}`,
           identity: participant.identity,
@@ -415,20 +416,22 @@ export default function Home() {
     if (!room) return;
     try {
       const displayStream = await navigator.mediaDevices.getDisplayMedia({
-        video: { width: { ideal: 2560, max: 3840 }, height: { ideal: 1440, max: 2160 }, frameRate: { ideal: 20, max: 24 } },
-        audio: true,
+        video: { width: { ideal: 3840, max: 3840 }, height: { ideal: 2160, max: 2160 }, frameRate: { ideal: 30, max: 30 } },
+        audio: { autoGainControl: false, echoCancellation: false, noiseSuppression: false },
         systemAudio: "include",
       } as any);
       const videoTrack = displayStream.getVideoTracks()[0];
       const audioTrack = displayStream.getAudioTracks()[0];
       if (!videoTrack) throw new Error("No screen video was selected.");
       videoTrack.contentHint = "detail";
+      await videoTrack.applyConstraints({ width: { ideal: 3840, max: 3840 }, height: { ideal: 2160, max: 2160 }, frameRate: { ideal: 30, max: 30 } });
       await room.localParticipant.publishTrack(videoTrack, {
         source: Track.Source.ScreenShare,
-        screenShareEncoding: { maxBitrate: 8_000_000, maxFramerate: 20 },
+        screenShareEncoding: { maxBitrate: 12_000_000, maxFramerate: 30 },
         degradationPreference: "maintain-resolution",
       });
       if (audioTrack) {
+        audioTrack.contentHint = "music";
         await room.localParticipant.publishTrack(audioTrack, { source: Track.Source.ScreenShareAudio });
       }
       screenTracksRef.current = displayStream.getTracks();
@@ -436,7 +439,7 @@ export default function Home() {
       setScreenAudioIncluded(Boolean(audioTrack));
       setLocalScreenTrack(videoTrack);
       videoTrack.addEventListener("ended", () => { void stopScreenShare(); }, { once: true });
-      if (!audioTrack) setMediaNotice("Your browser shared the screen without system audio. Try sharing a browser tab and enable its audio option.");
+      if (!audioTrack) setMediaNotice("No shared audio was provided. Choose a browser tab or window and enable its audio option in the share dialog.");
       else setMediaNotice("");
     } catch (shareError) {
       const message = shareError instanceof Error ? shareError.message : "Screen sharing was cancelled or unavailable.";
