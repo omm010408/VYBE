@@ -436,10 +436,18 @@ export default function Home() {
         video: { width: { ideal: 3840, max: 3840 }, height: { ideal: 2160, max: 2160 }, frameRate: { ideal: 30, max: 30 } },
         audio: true,
         systemAudio: "include",
+        displaySurface: "monitor",
+        selfBrowserSurface: "exclude",
+        surfaceSwitching: "include",
+        monitorTypeSurfaces: "include",
       } as any);
       const videoTrack = displayStream.getVideoTracks()[0];
       const audioTrack = displayStream.getAudioTracks()[0];
       if (!videoTrack) throw new Error("No screen video was selected.");
+      const shareNotices: string[] = [];
+      if (videoTrack.getSettings().displaySurface && videoTrack.getSettings().displaySurface !== "monitor") {
+        shareNotices.push("For the complete display, choose Entire Screen in the share dialog.");
+      }
       videoTrack.contentHint = "detail";
       await videoTrack.applyConstraints({ width: { ideal: 3840, max: 3840 }, height: { ideal: 2160, max: 2160 }, frameRate: { ideal: 30, max: 30 } });
       await room.localParticipant.publishTrack(videoTrack, {
@@ -462,8 +470,8 @@ export default function Home() {
       setScreenAudioIncluded(Boolean(audioTrack));
       setLocalScreenTrack(videoTrack);
       videoTrack.addEventListener("ended", () => { void stopScreenShare(); }, { once: true });
-      if (!audioTrack) setMediaNotice("No shared audio was provided. In Chrome or Edge, choose a browser tab and enable Share tab audio. Safari may not support system-audio capture.");
-      else setMediaNotice("");
+      if (!audioTrack) shareNotices.push("No shared audio was provided. In Chrome or Edge, choose a browser tab and enable Share tab audio. Safari may not support system-audio capture.");
+      setMediaNotice(shareNotices.join(" "));
     } catch (shareError) {
       const message = shareError instanceof Error ? shareError.message : "Screen sharing was cancelled or unavailable.";
       if (!message.toLowerCase().includes("permission denied") && !message.toLowerCase().includes("cancel")) setError(message);
