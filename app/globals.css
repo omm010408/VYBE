@@ -13,7 +13,7 @@
 }
 
 * { box-sizing: border-box; }
-html, body { min-height: 100%; margin: 0; background: var(--bg); }
+html, body { min-height: 100%; margin: 0; background: var(--bg); overflow-x: hidden; }
 body { color: var(--text); font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; -webkit-font-smoothing: antialiased; }
 button, input { font: inherit; }
 button { color: inherit; }
@@ -280,40 +280,66 @@ h1, h2 { font-family: ui-sans-serif, system-ui, sans-serif; letter-spacing: -.06
 :root[data-theme="light"] .chat-form input { border-color: rgba(55,102,65,.16); background: #f7faf7; color: #304337; }
 
 @media (max-width: 760px) {
-  .topbar { height: 64px; padding: 0 20px; }
-  .topbar-right { gap: 9px; font-size: 8px; }
+  .topbar { height: 60px; padding: 0 16px; }
+  .brand { gap: 8px; font-size: 14px; }
+  .brand-mark { width: 19px; height: 19px; }
+  .topbar-right { gap: 8px; font-size: 8px; }
   .no-account { display: none; }
   .topbar-divider { display: none; }
-  .home-view { padding-top: 75px; }
-  .hero-copy h1 { font-size: 49px; }
+  .privacy-label { font-size: 8px; letter-spacing: .1em; }
+  .home-view { width: min(calc(100% - 28px), 520px); padding-top: 58px; }
+  .hero-copy { margin-bottom: 27px; }
+  .hero-copy h1 { margin-top: 17px; font-size: clamp(40px, 12vw, 52px); }
+  .hero-subtitle { font-size: 13px; line-height: 1.55; }
+  .home-panel { padding: 9px; border-radius: 12px; }
+  .create-button { min-height: 66px; padding-inline: 12px; }
+  .create-button small { font-size: 10px; }
+  .home-footnotes { margin-top: 18px; }
   .page-footer { margin-top: 58px; }
-  .prejoin-view { width: min(100% - 32px, 520px); padding-top: 27px; }
-  .back-link { margin-bottom: 27px; }
-  .prejoin-heading h2 { font-size: 31px; }
+  .prejoin-view { width: min(calc(100% - 28px), 520px); padding: 24px 0 34px; }
+  .back-link { margin-bottom: 22px; }
+  .prejoin-heading { margin-bottom: 19px; }
+  .prejoin-heading h2 { margin-top: 9px; font-size: 30px; }
+  .prejoin-heading p { font-size: 11px; }
   .prejoin-layout { grid-template-columns: 1fr; }
-  .preview-frame { height: min(58vw, 330px); min-height: 210px; }
-  .call-view { width: calc(100% - 24px); min-height: calc(100vh - 64px); padding-top: 15px; }
-  .call-app-shell .call-view { height: calc(100dvh - 64px); }
-  .call-stage { min-height: 300px; }
+  .preview-card { padding: 7px; }
+  .preview-frame { height: min(62vw, 300px); min-height: 190px; }
+  .preview-controls { min-height: 58px; padding-top: 6px; }
+  .prejoin-side { gap: 9px; }
+  .setup-card { padding: 13px; }
+  .invite-preview-card { padding: 11px; }
+  .call-view { width: calc(100% - 20px); min-height: calc(100vh - 60px); padding: 13px 0 12px; }
+  .call-app-shell .call-view { height: calc(100dvh - 60px); }
+  .call-header { font-size: 8px; }
+  .call-header > div { gap: 6px; }
+  .share-invite-button { padding: 8px 9px; font-size: 9px; }
+  .call-stage { min-height: 260px; gap: 8px; padding: 10px 0; }
   .participant-grid { grid-template-columns: 1fr; }
-  .participant-card, .waiting-card { min-height: 220px; }
-  .call-footer { grid-template-columns: 1fr; gap: 12px; padding: 12px; }
+  .participant-card, .waiting-card { min-height: 190px; }
+  .call-footer { grid-template-columns: 1fr; gap: 8px; padding: 9px; }
   .connection-label { justify-content: center; order: 0; }
-  .call-controls { justify-content: center; order: 1; gap: 7px; }
+  .call-controls { justify-content: center; order: 1; gap: 5px; }
   .call-foot-right { display: none; }
-  .call-control, .leave-control { min-width: 61px; }
+  .call-control, .leave-control { min-width: 54px; height: 46px; padding-inline: 5px; }
+  .call-control small, .leave-control small { font-size: 7px; }
   .call-stage.has-screen { display: flex; overflow: visible; }
-  .call-stage.has-screen .screen-stage { height: 33vh; min-height: 180px; }
+  .call-stage.has-screen .screen-stage { height: min(48vh, 360px); min-height: 180px; }
   .call-stage.has-screen .participant-grid { grid-template-columns: 1fr; grid-auto-rows: auto; max-height: none; overflow: visible; }
   .call-stage.has-screen .participant-card, .call-stage.has-screen .waiting-card { min-height: 105px; aspect-ratio: 16 / 9; }
+  .chat-panel { top: 58px; right: 0; width: min(320px, calc(100vw - 24px)); height: min(430px, calc(100dvh - 150px)); }
+  .reaction-picker { max-width: calc(100vw - 24px); }
 }
 
 @media (max-width: 390px) {
-  .home-footnotes { grid-template-columns: 1fr; }
+  .home-view { width: calc(100% - 22px); padding-top: 44px; }
+  .home-footnotes { grid-template-columns: 1fr; gap: 9px; }
   .hero-copy h1 { font-size: 43px; }
-  .topbar { padding: 0 15px; }
+  .topbar { padding: 0 12px; }
   .privacy-label { letter-spacing: .1em; }
-  .call-control, .leave-control { min-width: 54px; padding-inline: 6px; }
+  .call-control, .leave-control { min-width: 49px; padding-inline: 3px; }
+  .call-control svg, .leave-control svg { width: 17px; height: 17px; }
+  .preview-control-label { font-size: 9px; }
+  .chat-panel { width: calc(100vw - 20px); right: -2px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
